@@ -11,7 +11,7 @@ class InviteCheck(commands.Cog):
     def __init__(self, bot: BotClass):
         self.bot = bot
 
-        welcome_channel_name = self.bot.channels.get("custom_invite_channel", "welcome")
+        welcome_channel_name = self.bot.CFG.get("custom_invite_channel", "welcome")
         self.welcome_channel = self.bot.channels.get(welcome_channel_name, None)
         if self.welcome_channel is None:
             print("['welcome' channel not set, disabling invite check subroutine]")

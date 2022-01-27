@@ -1,5 +1,4 @@
 import os
-from random import choice as random_choice
 from traceback import format_exc
 
 import discord
