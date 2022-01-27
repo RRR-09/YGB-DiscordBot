@@ -38,13 +38,13 @@ class InviteCheck(commands.Cog):
         changed_invites: List[discord.Invite] = await self.bot.guild.invites()
 
         invite_message = self.custom_invite_format.format(
-            member_name=member.display_name, invite_name="{invite_name}"
+            member_name=member.mention, invite_name="{invite_name}"
         )
         for invite in changed_invites:
             old_invite: Union[Dict, None] = self.invite_map.get(invite.code)
             if old_invite is None:
                 invite_message = invite_message.format(
-                    invite_name=invite.inviter.display_name
+                    invite_name=f"{invite.inviter.mention}'s invite ({invite.code})"
                 )
                 break
             if invite.uses <= old_invite["uses"]:
@@ -52,7 +52,7 @@ class InviteCheck(commands.Cog):
             custom_msg = self.custom_invite_messages.get(invite.code)
             if custom_msg is None:
                 invite_message = invite_message.format(
-                    invite_name=f"{invite.inviter.display_name}'s invite"
+                    invite_name=f"{invite.inviter.mention}'s invite ({invite.code})"
                 )
             else:
                 invite_message = invite_message.format(invite_name=custom_msg)
