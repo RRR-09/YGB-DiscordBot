@@ -1,0 +1,33 @@
+{
+  "custom_invite_messages": {
+    "ABCdefg12h": "custom invite 1"
+  },
+  "custom_invite_format": "{member_name} has joined from {invite_name}",
+  "discord_bot_owner_id": 123456789012345678,
+  "discord_guild_id": 123456789012345678,
+  "discord_channel_ids": {
+    "admin": 123456789012345678,
+    "bot_commands": 123456789012345678,
+    "leaving": 123456789012345678,
+    "staff": 123456789012345678,
+    "welcome": 123456789012345678
+  },
+  "discord_role_ids": {
+    "admin": 123456789012345678,
+    "mod": 123456789012345678,
+    "member": 123456789012345678,
+    "guest": 123456789012345678
+  },
+  "watchdog": {
+    "bot_vars": {
+      "directory": "$HOME/discord_bots/bot_name/src",
+      "launch_command": "poetry run python main.py --config config.json",
+      "process_name": "dicord-bot-main"
+    },
+    "watchdog_vars": {
+      "directory": "$HOME/discord_bots/bot_name/src",
+      "launch_command": "poetry run python watchdog.py --config config.json",
+      "process_name": "watchdog_discord-bot"
+    }
+  }
+}
