@@ -36,33 +36,42 @@ class InviteCheck(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
-        changed_invites: List[nextcord.Invite] = await self.bot.guild.invites()
+        current_invites: List[nextcord.Invite] = await self.bot.guild.invites()
 
         invite_message = self.custom_invite_format.format(
             member_name=member.mention, invite_name="{invite_name}"
         )
-        for invite in changed_invites:
+        for invite in current_invites:
+            # Skip any invites that were not used
+            if invite.uses is not None and invite.uses <= 0:
+                continue
+
             inviter_mention = "<ERROR USER NOT FOUND>"
             if invite.inviter is not None:
                 inviter_mention = invite.inviter.mention
+
+            # If the invite wasn't logged, it was newly added (and used)
             old_invite: Union[Dict, None] = self.invite_map.get(invite.code)
             if old_invite is None:
                 invite_message = invite_message.format(
                     invite_name=f"{inviter_mention}'s invite ({invite.code})"
                 )
                 break
+
+            # If it was logged and it hasn't increased since our record of it, skip
             if invite.uses <= old_invite["uses"]:
                 continue
+
+            # Show a custom message for any invites we know the source of and have a message for
+            invite_name = f"{inviter_mention}'s invite ({invite.code})"
             custom_msg = self.custom_invite_messages.get(invite.code)
-            if custom_msg is None:
-                invite_message = invite_message.format(
-                    invite_name=f"{inviter_mention}'s invite ({invite.code})"
-                )
-            else:
-                invite_message = invite_message.format(invite_name=custom_msg)
+            if custom_msg is not None:
+                invite_name = custom_msg
+            invite_message = invite_message.format(invite_name=invite_name)
+
             break
 
-        self.invites = changed_invites[:]
+        self.invites = current_invites[:]
         self.invite_map = await self.map_invites(self.invites)
 
         await self.welcome_channel.send(invite_message)
