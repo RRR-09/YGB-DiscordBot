@@ -18,6 +18,8 @@ class InviteCheck(commands.Cog):
             return
         self.welcome_channel = welcome_channel
 
+        self.debug = self.bot.CFG.get("custom_invite_debug", False)
+        
         self.custom_invite_format = bot.CFG.get(
             "custom_invite_format", "> {member_name} has joined from {invite_name}"
         )
@@ -37,7 +39,12 @@ class InviteCheck(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
         current_invites: List[nextcord.Invite] = await self.bot.guild.invites()
-
+        
+        if self.debug:
+            do_log(f"Old Invite Map:\n{self.invite_map}\n")
+            new_invite_map = await self.map_invites(current_invites)
+            do_log(f"New Invite Map:\n{new_invite_map}\n")
+        
         invite_message = self.custom_invite_format.format(
             member_name=member.mention, invite_name="{invite_name}"
         )
