@@ -1,7 +1,7 @@
 import os
 from traceback import format_exc
 
-import discord
+import nextcord
 from dotenv import load_dotenv
 
 import utils
@@ -18,7 +18,7 @@ async def on_error(event, args="", kwargs=""):
 
 
 @bot.client.event
-async def on_message(message: discord.Message):
+async def on_message(message: nextcord.Message):
     if not bot.ready:  # Handle race condition
         return
 
@@ -66,9 +66,9 @@ async def on_ready():
     try:
         utils.do_log(f"Bot name: {bot.client.user.name}")
         utils.do_log(f"Bot ID: {bot.client.user.id}")
-        await bot.client.change_presence(
-            activity=discord.Game(name="Loading...", type=0)
-        )
+        # await bot.client.change_presence(
+        #     activity=nextcord.Game(name="/help", type=0)
+        # )
         await config()
 
         utils.do_log("Ready\n\n")

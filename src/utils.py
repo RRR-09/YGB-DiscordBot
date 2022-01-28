@@ -5,15 +5,14 @@ from json import load as load_json
 from math import floor
 from typing import Any, Dict, List, TextIO, Tuple, Union
 
-from discord import Guild as DiscordGuild
-from discord import Intents as DiscordIntents
-from discord import Member as DiscordMember
-from discord import Message as DiscordMessage
-from discord import Role as DiscordRole
-from discord import TextChannel as DiscordChannel
-from discord import User as DiscordUser
-from discord import Webhook as DiscordWebhook
-from discord.ext.commands import Bot as DiscordBot
+from nextcord import Guild as DiscordGuild
+from nextcord import Intents as DiscordIntents
+from nextcord import Message as DiscordMessage
+from nextcord import Role as DiscordRole
+from nextcord import TextChannel as DiscordChannel
+from nextcord import User as DiscordUser
+from nextcord import Webhook as DiscordWebhook
+from nextcord.ext.commands import Bot as DiscordBot
 from pytz import timezone
 
 
@@ -25,10 +24,10 @@ class BotClass:
         intents.messages = True
 
         self.client = DiscordBot(command_prefix="/", intents=intents)
-        self.logger = logging.getLogger("discord")
+        self.logger = logging.getLogger("nextcord")
         self.logger.setLevel(logging.ERROR)
         self.handler = logging.FileHandler(
-            filename="discord.log", encoding="utf-8", mode="w"
+            filename="nextcord.log", encoding="utf-8", mode="w"
         )
         self.handler.setFormatter(
             logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
@@ -121,123 +120,20 @@ def json_load_eval(fp_obj: TextIO) -> Dict:
     return load_json(fp_obj, object_pairs_hook=json_eval_object_pairs_hook)
 
 
-async def find_server_member(
-    guild: DiscordGuild,
-    message: DiscordMessage = None,
-    discord_id: Union[int, str] = None,
-) -> Union[DiscordMember, None]:
-    """
-    Given a search query (message arg) or a discord id, attempts to find the user as a Member
-    object using the guild provided in arguments.
-    """
-
-    # TODO: Clean this function up
-    message_copy = message
-    if message_copy is None:
-        message_copy = DiscordMessage
-        message_copy.content = "_ " + str(discord_id)
-        message_copy.guild = guild
-    msg = message_copy.content.split(" ")
-    if len(msg) > 1 and msg[1] == "":
-        msg[1] = msg[2]
-    if len(msg) == 1 and discord_id is None:
-        user = message_copy.author
-    elif msg[1].replace("<@", "").replace("!", "").replace(">", "").isdigit():
-        msg = int(msg[1].replace("<@", "").replace("!", "").replace(">", ""))
-        user = message_copy.guild.get_member(msg)
-    else:
-        msg = msg[1]
-        user = message_copy.guild.get_member_named(msg)
-        if user is None:
-            member_obj = {}
-            for member in message_copy.guild.members:
-                nick = "" if member.display_name == member.name else member.display_name
-                member_obj[member.id] = {
-                    "nickname": nick,
-                    "username": member.name,
-                    "discriminator": member.discriminator,
-                }
-
-            # nickname case insensitive
-            for id in member_obj:
-                member = member_obj[id]
-                if msg == member["nickname"].lower():
-                    user = id
-                    break
-            if user is None:
-                # username case insensitive
-                for id in member_obj:
-                    member = member_obj[id]
-                    if msg == member["username"].lower():
-                        user = id
-                        break
-                if user is None:
-                    # nickname case insensitive startswith match
-                    for id in member_obj:
-                        member = member_obj[id]
-                        if member["nickname"].lower().startswith(msg):
-                            user = id
-                            break
-                    if user is None:
-                        # username case insensitive startswith match
-                        for id in member_obj:
-                            member = member_obj[id]
-                            if member["username"].lower().startswith(msg):
-                                user = id
-                                break
-                        if user is None:
-                            # nickname case insensitive loose match
-                            for id in member_obj:
-                                member = member_obj[id]
-                                if msg in member["nickname"].lower():
-                                    user = id
-                                    break
-                            if user is None:
-                                # username case insensitive loose match
-                                for id in member_obj:
-                                    member = member_obj[id]
-                                    if msg in member["username"].lower():
-                                        user = id
-                                        break
-                                if user is None:
-                                    return None
-            user = message_copy.guild.get_member(user)
-    return user
-
-
 async def get_hook_in_server(
     message: DiscordMessage, hook_user: DiscordUser
-) -> DiscordWebhook:
-    hooks = await message.channel.webhooks()
+) -> Union[DiscordWebhook, None]:
+    if type(message.channel) != DiscordChannel:
+        return None
     found_hook = None
+    hooks = await message.channel.webhooks()
     for h in hooks:
-        if h.user.id == hook_user.id:
+        if h.user is not None and h.user.id == hook_user.id:
             found_hook = h
             break
     if found_hook is None:
         found_hook = await message.channel.create_webhook(name=hook_user.display_name)
     return found_hook
-
-
-async def is_member_admin(
-    member: Union[str, DiscordMember], guild: DiscordGuild
-) -> bool:
-    """
-    Given a member ID or Member object, attempts to find if they have admin permissions or not in
-    the specified Discord guild.
-    """
-    if isinstance(member, str):
-        member_id = member
-        member = guild.get_member(member)
-        if member is None:
-            log_error(f'[{get_est_time()}] ERROR: Could not find member "{member_id}".')
-            return False
-    try:
-        if not member.guild_permissions.manage_guild:
-            return False
-    except Exception:
-        return False
-    return True
 
 
 async def get_english_timestamp(time_var: Union[int, float]) -> str:
