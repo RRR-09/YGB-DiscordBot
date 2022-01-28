@@ -1,6 +1,6 @@
 {
   "custom_invite_channel": "general",
-  "custom_invite_debug": False,
+  "custom_invite_debug": false,
   "custom_invite_format": "{member_name} has joined from {invite_name}",
   "custom_invite_messages": {
     "ABCdefg12h": "custom invite 1"
