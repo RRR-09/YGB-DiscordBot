@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 import utils
 from cogs.invite_check import InviteCheck as InviteCheckCog
+from cogs.message_logging import MessageLogging as MessageLoggingCog
 
 global bot
 bot = utils.BotClass()
@@ -43,6 +44,7 @@ async def on_message(message: nextcord.Message):
 
 async def post_init():
     bot.client.add_cog(InviteCheckCog(bot))
+    bot.client.add_cog(MessageLoggingCog(bot))
 
 
 async def config():

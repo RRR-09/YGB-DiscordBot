@@ -54,18 +54,24 @@ def censor_text(text: str, leave_uncensored: int = 4) -> str:
     )
 
 
-def get_est_time(time_to_convert: datetime = None) -> str:
+def get_est_time(datetime_to_convert: datetime = None) -> str:
     """
-    Gets the current time (or 'time_to_convert' arg, if provided) as datetime and converts it to a
+    Gets the current time (or 'datetime_to_convert' arg, if provided) as datetime and converts it to a
     readable string
     """
     desired_timezone = timezone("America/Toronto")
-    if time_to_convert is not None:
-        # TODO: Take in a datetime and convert to EST
-        do_log("GET_EST_TIME ERROR, PLEASE IMPLEMENT CONVERTER")
-        return "ERROR"
+    if datetime_to_convert is not None:
+        input_timezone = timezone("UTC")
+        if datetime_to_convert.tzinfo is not None:
+            # TODO: Convert datetime tzinfo to pytz accordingly
+            do_log("GET_EST_TIME ERROR, PLEASE IMPLEMENT CONVERTER")
+            return "ERROR"
+        timezoned_datetime = input_timezone.localize(datetime_to_convert)
+        output_datetime = timezoned_datetime.astimezone(desired_timezone)
     else:
-        return datetime.now(desired_timezone).strftime("%Y-%b-%d %I:%M:%S %p EST")
+        output_datetime = datetime.now(desired_timezone)
+
+    return output_datetime.strftime("%Y-%b-%d %I:%M:%S %p EST")
 
 
 def do_log(message: str):
