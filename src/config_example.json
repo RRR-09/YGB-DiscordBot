@@ -20,6 +20,9 @@
     "member": 123456789012345678,
     "guest": 123456789012345678
   },
+  "media_rate_channels": ["memes", "pics"],
+  "media_rate_downvote": "👎",
+  "media_rate_upvote": "👍",
   "watchdog": {
     "bot_vars": {
       "directory": "$HOME/discord_bots/bot_name/src",
