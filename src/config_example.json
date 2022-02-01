@@ -23,6 +23,7 @@
   "media_rate_channels": ["memes", "pics"],
   "media_rate_downvote": "👎",
   "media_rate_upvote": "👍",
+  "message_log": false,
   "watchdog": {
     "bot_vars": {
       "directory": "$HOME/discord_bots/bot_name/src",

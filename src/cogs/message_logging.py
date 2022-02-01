@@ -16,6 +16,13 @@ MessageColumnsType = Tuple[int, float, int, int, str, Optional[str]]
 class MessageLogging(commands.Cog):
     def __init__(self, bot: BotClass):
         self.bot = bot
+        self.disabled = False
+        if not self.bot.CFG.get("message_log", False):
+            print(
+                "[message_log set to 'false' or missing from config, disabling message logging subroutine."
+            )
+            self.disabled = True
+            return
         self.loading = True
         self.db_path = Path.cwd() / "data" / "message_log.sqlite"
         self.message_buffer: List[MessageColumnsType] = []
@@ -130,6 +137,9 @@ class MessageLogging(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if self.disabled:
+            return
+
         message_entry = await self.message_to_db_columns(message)
 
         if self.loading:
