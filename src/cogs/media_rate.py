@@ -49,6 +49,8 @@ class MediaRate(commands.Cog):
                     if nullable_property != nextcord.Embed.Empty:
                         has_media = True
                         break
+                if has_media:
+                    break
         if not has_media:
             message_urls = self.url_regex.findall(message.content)
 
