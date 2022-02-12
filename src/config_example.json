@@ -1,4 +1,5 @@
 {
+  "custom_invite_attempts": 3,
   "custom_invite_channel": "general",
   "custom_invite_debug": false,
   "custom_invite_format": "{member_name} has joined from {invite_name}",

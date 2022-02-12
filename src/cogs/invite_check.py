@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 import nextcord
 from nextcord.ext import commands
 
-from utils import BotClass, do_log
+from utils import BotClass, do_log, log_error
 
 
 class InviteCheck(commands.Cog):
@@ -19,6 +19,8 @@ class InviteCheck(commands.Cog):
         self.welcome_channel = welcome_channel
 
         self.debug = self.bot.CFG.get("custom_invite_debug", False)
+
+        self.attempts = self.bot.CFG.get("custom_invite_attempts", 3)
 
         self.custom_invite_format = bot.CFG.get(
             "custom_invite_format", "> {member_name} has joined from {invite_name}"
@@ -48,35 +50,50 @@ class InviteCheck(commands.Cog):
         invite_message = self.custom_invite_format.format(
             member_name=member.mention, invite_name="{invite_name}"
         )
-        for invite in current_invites:
-            # Skip any invites that were not used
-            if invite.uses is not None and invite.uses <= 0:
-                continue
+        found_invite = False
+        for _ in range(self.attempts):
+            for invite in current_invites:
+                # Skip any invites that were not used
+                if invite.uses is not None and invite.uses <= 0:
+                    continue
 
-            inviter_mention = "<ERROR USER NOT FOUND>"
-            if invite.inviter is not None:
-                inviter_mention = invite.inviter.mention
+                inviter_mention = "<ERROR USER NOT FOUND>"
+                if invite.inviter is not None:
+                    inviter_mention = invite.inviter.mention
 
-            # If the invite wasn't logged, it was newly added (and used)
-            old_invite: Union[Dict, None] = self.invite_map.get(invite.code)
-            if old_invite is None:
-                invite_message = invite_message.format(
-                    invite_name=f"{inviter_mention}'s invite ({invite.code})"
-                )
+                # If the invite wasn't logged, it was newly added (and used)
+                old_invite: Union[Dict, None] = self.invite_map.get(invite.code)
+                if old_invite is None:
+                    invite_message = invite_message.format(
+                        invite_name=f"{inviter_mention}'s invite ({invite.code})"
+                    )
+                    found_invite = True
+                    break
+
+                # If it was logged and it hasn't increased since our record of it, skip
+                if invite.uses <= old_invite["uses"]:
+                    continue
+
+                # Show a custom message for any invites we know the source of and have a message for
+                found_invite = True
+                invite_name = f"{inviter_mention}'s invite ({invite.code})"
+                custom_msg = self.custom_invite_messages.get(invite.code)
+                if custom_msg is not None:
+                    invite_name = custom_msg
+                invite_message = invite_message.format(invite_name=invite_name)
                 break
 
-            # If it was logged and it hasn't increased since our record of it, skip
-            if invite.uses <= old_invite["uses"]:
-                continue
+            if found_invite:
+                break
 
-            # Show a custom message for any invites we know the source of and have a message for
-            invite_name = f"{inviter_mention}'s invite ({invite.code})"
-            custom_msg = self.custom_invite_messages.get(invite.code)
-            if custom_msg is not None:
-                invite_name = custom_msg
-            invite_message = invite_message.format(invite_name=invite_name)
-
-            break
+        if not (found_invite):
+            new_invite_map = await self.map_invites(current_invites)
+            log_error(
+                "[COULD NOT FIND INVITE USED]\n"
+                f"Old Invite Map:\n{self.invite_map}\n\n"
+                f"New Invite Map:\n{new_invite_map}\n\n"
+            )
+            invite_message = invite_message.format(invite_name="[ERROR]")
 
         self.invites = current_invites[:]
         self.invite_map = await self.map_invites(self.invites)
